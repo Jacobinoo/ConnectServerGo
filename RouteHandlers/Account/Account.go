@@ -15,7 +15,7 @@ import (
 func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(writer)
-	var response Helpers.HttpResponse
+	var response httpSignInResponse
 
 	var account Types.AccountLoginData
 
@@ -52,8 +52,24 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	log.Println("successful login for", account.Email)
+
+	at, rt, err := generateTokenPair()
+	if err != nil {
+		log.Println("token pair generation failed")
+		http.Error(writer, "Authentication token pair could not be generated", http.StatusInternalServerError)
+		return
+	}
+
 	response.Success = true
+	response = httpSignInResponse{
+		AccessToken:  at,
+		RefreshToken: rt,
+		HttpResponse: Helpers.HttpResponse{
+			Success: true,
+		},
+	}
 	encoder.Encode(response)
+
 }
 
 func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPasswordHash string, error error) {
@@ -71,5 +87,27 @@ func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPas
 	return row.Password, nil
 }
 
+func generateTokenPair() (accessToken, refreshToken string, error error) {
+	at, err := Security.ConstructAccessToken()
+	if err != nil {
+		log.Println(errAccountAccessTokenGenerationFailed)
+		return "", "", errAccountAccessTokenGenerationFailed
+	}
+	rt, err := Security.ConstructRefreshToken()
+	if err != nil {
+		log.Println(errAccountRefreshTokenGenerationFailed)
+		return "", "", errAccountRefreshTokenGenerationFailed
+	}
+	return at, rt, nil
+}
+
+type httpSignInResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+	Helpers.HttpResponse
+}
+
 var errAccountEmailNotFound = errors.New("email doesn't exist in db")
 var errAccountWrongPassword = errors.New("passwords hashes don't match")
+var errAccountAccessTokenGenerationFailed = errors.New("couldn't generate access token")
+var errAccountRefreshTokenGenerationFailed = errors.New("couldn't generate refresh token")
