@@ -1,1 +1,1 @@
-![Go Build](https://github.com/github/docs/actions/workflows/go.yml/badge.svg)
+![Go Build](https://github.com/Jacobinoo/ConnectServerGo/actions/workflows/go.yml/badge.svg)
