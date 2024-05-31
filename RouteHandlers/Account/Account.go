@@ -13,6 +13,8 @@ import (
 )
 
 func SignInHandler(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-Type", "application/json")
+
 	var account Types.AccountLoginData
 
 	err := Helpers.DecodeJSONBody(writer, request, &account)
