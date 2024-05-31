@@ -6,14 +6,16 @@ import (
 	"ConnectServer/Helpers"
 	"ConnectServer/Types"
 	"database/sql"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 )
 
 func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(writer)
+	var response Helpers.HttpResponse
 
 	var account Types.AccountLoginData
 
@@ -50,7 +52,8 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	log.Println("successful login for", account.Email)
-	fmt.Fprintln(writer, "Successful login!")
+	response.Success = true
+	encoder.Encode(response)
 }
 
 func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPasswordHash string, error error) {
