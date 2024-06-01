@@ -4,6 +4,7 @@ import (
 	"ConnectServer/Frameworks/CoreData"
 	"ConnectServer/Frameworks/Security"
 	"ConnectServer/Helpers"
+
 	"ConnectServer/Types"
 	"database/sql"
 	"encoding/json"
@@ -33,7 +34,7 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 
 	passwordHash, err := fetchPasswordHashMatchingEmail(&account)
 	if err != nil {
-		if errors.Is(err, errAccountEmailNotFound) {
+		if errors.Is(err, Helpers.ErrSignInEmailNotFound) {
 			http.Error(writer, "Invalid credentials", http.StatusUnauthorized)
 			return
 		}
@@ -46,7 +47,7 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if !Security.VerifyPassword(account.Password, passwordHash) {
-		log.Println(errAccountWrongPassword)
+		log.Println(Helpers.ErrSignInWrongPassword)
 		http.Error(writer, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
@@ -78,14 +79,11 @@ func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPas
 	err := CoreData.DatabaseInstance.QueryRow("SELECT email,password FROM `Accounts` WHERE email=? LIMIT 1", account.Email).Scan(&row.Email, &row.Password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Println(errAccountEmailNotFound)
-			return "", errAccountEmailNotFound
+			log.Println(Helpers.ErrSignInEmailNotFound)
+			return "", Helpers.ErrSignInEmailNotFound
 		}
 		log.Println(err)
 		return "", err
 	}
 	return row.Password, nil
 }
-
-var errAccountEmailNotFound = errors.New("email doesn't exist in db")
-var errAccountWrongPassword = errors.New("passwords hashes don't match")
