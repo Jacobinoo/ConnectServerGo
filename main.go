@@ -21,6 +21,7 @@ func main() {
 	router := http.NewServeMux()
 
 	router.HandleFunc("POST /Account/SignIn", Account.SignInHandler)
+	router.HandleFunc("POST /Account/SignUp", Account.SignUpHandler)
 
 	http.ListenAndServe("localhost:3000", router)
 }
