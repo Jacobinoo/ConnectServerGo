@@ -15,7 +15,7 @@ import (
 func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(writer)
-	var response httpSignInResponse
+	var response Types.HttpSignInResponse
 
 	var account Types.AccountLoginData
 
@@ -53,7 +53,7 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 
 	log.Println("successful login for", account.Email)
 
-	at, rt, err := generateTokenPair()
+	at, rt, err := GenerateTokenPair()
 	if err != nil {
 		log.Println("token pair generation failed")
 		http.Error(writer, "Authentication token pair could not be generated", http.StatusInternalServerError)
@@ -61,10 +61,10 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	response.Success = true
-	response = httpSignInResponse{
+	response = Types.HttpSignInResponse{
 		AccessToken:  at,
 		RefreshToken: rt,
-		HttpResponse: Helpers.HttpResponse{
+		HttpResponse: Types.HttpResponse{
 			Success: true,
 		},
 	}
@@ -87,27 +87,5 @@ func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPas
 	return row.Password, nil
 }
 
-func generateTokenPair() (accessToken, refreshToken string, error error) {
-	at, err := Security.ConstructAccessToken()
-	if err != nil {
-		log.Println(errAccountAccessTokenGenerationFailed)
-		return "", "", errAccountAccessTokenGenerationFailed
-	}
-	rt, err := Security.ConstructRefreshToken()
-	if err != nil {
-		log.Println(errAccountRefreshTokenGenerationFailed)
-		return "", "", errAccountRefreshTokenGenerationFailed
-	}
-	return at, rt, nil
-}
-
-type httpSignInResponse struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
-	Helpers.HttpResponse
-}
-
 var errAccountEmailNotFound = errors.New("email doesn't exist in db")
 var errAccountWrongPassword = errors.New("passwords hashes don't match")
-var errAccountAccessTokenGenerationFailed = errors.New("couldn't generate access token")
-var errAccountRefreshTokenGenerationFailed = errors.New("couldn't generate refresh token")
