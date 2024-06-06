@@ -34,6 +34,6 @@ Any form of redistribution is forbidden.
 
 The source code is only for viewing purposes, excluding security contributors who can modify the code.
 
-The source code may only be modified for security contribution reasons.**
+The source code may only be modified for security contribution reasons.
 
 Copyright: Jakub Banasiewicz 2024
