@@ -70,7 +70,6 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 		},
 	}
 	encoder.Encode(response)
-
 }
 
 func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPasswordHash string, error error) {
