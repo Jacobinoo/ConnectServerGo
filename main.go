@@ -5,13 +5,14 @@ import (
 	"ConnectServer/RouteHandlers/Account"
 	"log"
 	"net/http"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load(".env")
+	err := godotenv.Load(os.Getenv("APP_ENV_PATH"))
 	if err != nil {
 		log.Fatal("error loading .env file")
 	}
