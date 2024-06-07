@@ -12,8 +12,7 @@ import (
 
 func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
-	encoder := json.NewEncoder(writer)
-	var response Types.HttpSignInResponse
+	encoder := *json.NewEncoder(writer)
 
 	var accountToRegister Types.AccountRegisterData
 
@@ -21,10 +20,20 @@ func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 	if decodingError != nil {
 		var malformedReq *Helpers.MalformedRequest
 		if errors.As(decodingError, &malformedReq) {
-			http.Error(writer, malformedReq.Msg, malformedReq.Status)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: malformedReq.Msg,
+			}, malformedReq.Status)
 		} else {
 			log.Print(decodingError.Error())
-			http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: Helpers.InternalServerErrorHttpResponseMessage,
+			}, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -34,37 +43,92 @@ func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 		log.Println(validationError)
 		switch {
 		case errors.Is(validationError, Helpers.ErrSignUpInvalidEmail):
-			http.Error(writer, "Provided email is invalid", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Provided email is invalid",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpPasswordTooLong):
-			http.Error(writer, "Password is too long", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Password is too long",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpPasswordTooShort):
-			http.Error(writer, "Password is too short", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Password is too short",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpPasswordNoDigit):
-			http.Error(writer, "Password does not contain a digit", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Password does not contain a digit",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpPasswordNoLower):
-			http.Error(writer, "Password does not contain a lowercase letter", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Password does not contain a lowercase letter",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpPasswordNoUpper):
-			http.Error(writer, "Password does not contain an uppercase letter", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Password does not contain an uppercase letter",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpPasswordNoSpecial):
-			http.Error(writer, "Password does not contain a special character", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Password does not contain a special character",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpPasswordMismatch):
-			http.Error(writer, "Provided password and confirm password are different", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Provided password and confirm password are different",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpInvalidFirstName):
-			http.Error(writer, "Provided first name is invalid", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Provided first name is invalid",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpInvalidLastName):
-			http.Error(writer, "Provided last name is invalid", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Provided last name is invalid",
+			}, http.StatusBadRequest)
 			return
 		case errors.Is(validationError, Helpers.ErrSignUpNameContainsWhitespace):
-			http.Error(writer, "Names can't contain whitespaces", http.StatusBadRequest)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Names can't contain whitespaces",
+			}, http.StatusBadRequest)
 			return
 		}
 	}
@@ -74,12 +138,16 @@ func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 	at, rt, err := GenerateTokenPair()
 	if err != nil {
 		log.Println("token pair generation failed")
-		http.Error(writer, "Authentication token pair could not be generated", http.StatusInternalServerError)
+		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+			HttpResponse: Types.HttpResponse{
+				Success: false,
+			},
+			Error: "Authentication token pair could not be generated",
+		}, http.StatusInternalServerError)
 		return
 	}
 
-	response.Success = true
-	response = Types.HttpSignInResponse{
+	response := Types.HttpAuthResponse{
 		AccessToken:  at,
 		RefreshToken: rt,
 		HttpResponse: Types.HttpResponse{
