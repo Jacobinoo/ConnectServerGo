@@ -95,7 +95,7 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	response := Types.HttpSignInResponse{
+	response := Types.HttpAuthResponse{
 		AccessToken:  at,
 		RefreshToken: rt,
 		HttpResponse: Types.HttpResponse{
