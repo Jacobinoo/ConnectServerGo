@@ -141,3 +141,15 @@ var ErrSignUpPasswordNoUpper = errors.New("password needs to have at least one u
 var ErrSignUpPasswordNoLower = errors.New("password needs to have at least one lowercase")
 var ErrSignUpPasswordNoSpecial = errors.New("password needs to have at least one special")
 var ErrSignUpPasswordNoDigit = errors.New("password needs to have at least one digit")
+
+type ErrorResponse struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error"`
+}
+
+func JSONError(encoder json.Encoder, writer http.ResponseWriter, err interface{}, code int) {
+	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writer.Header().Set("X-Content-Type-Options", "nosniff")
+	writer.WriteHeader(code)
+	json.NewEncoder(writer).Encode(err)
+}
