@@ -12,7 +12,12 @@ import (
 )
 
 func main() {
-	err := godotenv.Load(os.Getenv("APP_ENV_PATH"))
+	appEnvPath := os.Getenv("APP_ENV_PATH")
+	if appEnvPath == "" {
+		appEnvPath = ".env"
+	}
+
+	err := godotenv.Load(appEnvPath)
 	if err != nil {
 		log.Fatal("error loading .env file")
 	}
