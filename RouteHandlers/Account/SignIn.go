@@ -15,8 +15,7 @@ import (
 
 func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
-	encoder := json.NewEncoder(writer)
-	var response Types.HttpSignInResponse
+	encoder := *json.NewEncoder(writer)
 
 	var account Types.AccountLoginData
 
@@ -24,10 +23,20 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		var malformedReq *Helpers.MalformedRequest
 		if errors.As(err, &malformedReq) {
-			http.Error(writer, malformedReq.Msg, malformedReq.Status)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: malformedReq.Msg,
+			}, malformedReq.Status)
 		} else {
 			log.Print(err.Error())
-			http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: Helpers.InternalServerErrorHttpResponseMessage,
+			}, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -35,20 +44,40 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	passwordHash, err := fetchPasswordHashMatchingEmail(&account)
 	if err != nil {
 		if errors.Is(err, Helpers.ErrSignInEmailNotFound) {
-			http.Error(writer, "Invalid credentials", http.StatusUnauthorized)
+			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+				HttpResponse: Types.HttpResponse{
+					Success: false,
+				},
+				Error: "Invalid credentials",
+			}, http.StatusUnauthorized)
 			return
 		}
-		http.Error(writer, Helpers.InternalServerErrorHttpResponseMessage, http.StatusInternalServerError)
+		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+			HttpResponse: Types.HttpResponse{
+				Success: false,
+			},
+			Error: Helpers.InternalServerErrorHttpResponseMessage,
+		}, http.StatusInternalServerError)
 		return
 	}
 	if passwordHash == "" {
-		http.Error(writer, "Invalid credentials", http.StatusUnauthorized)
+		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+			HttpResponse: Types.HttpResponse{
+				Success: false,
+			},
+			Error: "Invalid credentials",
+		}, http.StatusUnauthorized)
 		return
 	}
 
 	if !Security.VerifyPassword(account.Password, passwordHash) {
 		log.Println(Helpers.ErrSignInWrongPassword)
-		http.Error(writer, "Invalid credentials", http.StatusUnauthorized)
+		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+			HttpResponse: Types.HttpResponse{
+				Success: false,
+			},
+			Error: "Invalid credentials",
+		}, http.StatusUnauthorized)
 		return
 	}
 
@@ -57,12 +86,16 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	at, rt, err := GenerateTokenPair()
 	if err != nil {
 		log.Println("token pair generation failed")
-		http.Error(writer, "Authentication token pair could not be generated", http.StatusInternalServerError)
+		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+			HttpResponse: Types.HttpResponse{
+				Success: false,
+			},
+			Error: "Authentication token pair could not be generated",
+		}, http.StatusInternalServerError)
 		return
 	}
 
-	response.Success = true
-	response = Types.HttpSignInResponse{
+	response := Types.HttpSignInResponse{
 		AccessToken:  at,
 		RefreshToken: rt,
 		HttpResponse: Types.HttpResponse{
