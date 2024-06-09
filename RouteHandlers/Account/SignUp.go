@@ -1,8 +1,11 @@
 package Account
 
 import (
+	"ConnectServer/Frameworks/CoreData"
+	"ConnectServer/Frameworks/Security"
 	"ConnectServer/Helpers"
 	"ConnectServer/Types"
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -133,6 +136,8 @@ func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
+	insertAccountToDb(&accountToRegister)
+
 	log.Println("successful register for", accountToRegister.Email)
 
 	at, rt, err := GenerateTokenPair()
@@ -184,5 +189,24 @@ func validateRegistrationFormData(registerFormData *Types.AccountRegisterData) e
 		return Helpers.ErrSignUpNameContainsWhitespace
 	}
 
+	return nil
+}
+
+func insertAccountToDb(data *Types.AccountRegisterData) error {
+	passwordHash, hasherErr := Security.HashPassword(data.Password)
+	if hasherErr != nil {
+		log.Fatalln("HASHER ERR")
+	}
+
+	query := "INSERT INTO `Accounts` (`password`, `email`, `firstName`, `lastName`) VALUES (?, ?, ?, ?)"
+	insertResult, err := CoreData.DatabaseInstance.ExecContext(context.Background(), query, passwordHash, data.Email, data.FirstName, data.LastName)
+	if err != nil {
+		log.Fatalf("impossible insert account: %s", err)
+	}
+	id, err := insertResult.LastInsertId()
+	if err != nil {
+		log.Fatalf("impossible to retrieve last inserted id: %s", err)
+	}
+	log.Printf("inserted id: %d", id)
 	return nil
 }
