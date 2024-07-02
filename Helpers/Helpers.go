@@ -143,8 +143,8 @@ var ErrSignUpPasswordNoSpecial = errors.New("password needs to have at least one
 var ErrSignUpPasswordNoDigit = errors.New("password needs to have at least one digit")
 
 var ErrInsertionFailed = errors.New("row insertion failed")
-var ErrLastInsertIdUnavailable = errors.New("could not retrieve last insert id")
 var ErrHasherHashNew = errors.New("security framework's hasher failed")
+var ErrUUIDGenerationFailed = errors.New("security framework's hasher failed")
 
 type ErrorResponse struct {
 	Success bool   `json:"success"`
