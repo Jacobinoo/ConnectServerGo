@@ -29,5 +29,5 @@ func main() {
 	router.HandleFunc("POST /Account/SignIn", Account.SignInHandler)
 	router.HandleFunc("POST /Account/SignUp", Account.SignUpHandler)
 
-	http.ListenAndServe("localhost:3000", router)
+	http.ListenAndServe(os.Getenv("NETWORK_ADDR"), router)
 }
