@@ -209,17 +209,19 @@ func insertAccountToDb(data *Types.AccountRegisterData) error {
 		return Helpers.ErrHasherHashNew
 	}
 
-	query := "INSERT INTO `Accounts` (`password`, `email`, `firstName`, `lastName`) VALUES (?, ?, ?, ?)"
-	insertResult, err := CoreData.DatabaseInstance.ExecContext(context.Background(), query, passwordHash, data.Email, data.FirstName, data.LastName)
+	query := "INSERT INTO `Accounts` (`id`, `password`, `email`, `firstName`, `lastName`) VALUES (?, ?, ?, ?, ?)"
+
+	newUUID, UUIDErr := Security.GenerateUUID()
+	if UUIDErr != nil {
+		log.Print(UUIDErr)
+		return Helpers.ErrUUIDGenerationFailed
+	}
+
+	_, err := CoreData.DatabaseInstance.ExecContext(context.Background(), query, newUUID, passwordHash, data.Email, data.FirstName, data.LastName)
 	if err != nil {
 		log.Print(err)
 		return Helpers.ErrInsertionFailed
 	}
-	id, err := insertResult.LastInsertId()
-	if err != nil {
-		log.Print(err)
-		return Helpers.ErrLastInsertIdUnavailable
-	}
-	log.Printf("inserted id: %d", id)
+
 	return nil
 }
