@@ -136,7 +136,17 @@ func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	insertAccountToDb(&accountToRegister)
+	insertionErr := insertAccountToDb(&accountToRegister)
+	if insertionErr != nil {
+		log.Println(insertionErr)
+		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
+			HttpResponse: Types.HttpResponse{
+				Success: false,
+			},
+			Error: "Account creation failed due to an internal server error.",
+		}, http.StatusInternalServerError)
+		return
+	}
 
 	log.Println("successful register for", accountToRegister.Email)
 
@@ -195,17 +205,20 @@ func validateRegistrationFormData(registerFormData *Types.AccountRegisterData) e
 func insertAccountToDb(data *Types.AccountRegisterData) error {
 	passwordHash, hasherErr := Security.HashPassword(data.Password)
 	if hasherErr != nil {
-		log.Fatalln("HASHER ERR")
+		log.Print(hasherErr)
+		return Helpers.ErrHasherHashNew
 	}
 
 	query := "INSERT INTO `Accounts` (`password`, `email`, `firstName`, `lastName`) VALUES (?, ?, ?, ?)"
 	insertResult, err := CoreData.DatabaseInstance.ExecContext(context.Background(), query, passwordHash, data.Email, data.FirstName, data.LastName)
 	if err != nil {
-		log.Fatalf("impossible insert account: %s", err)
+		log.Print(err)
+		return Helpers.ErrInsertionFailed
 	}
 	id, err := insertResult.LastInsertId()
 	if err != nil {
-		log.Fatalf("impossible to retrieve last inserted id: %s", err)
+		log.Print(err)
+		return Helpers.ErrLastInsertIdUnavailable
 	}
 	log.Printf("inserted id: %d", id)
 	return nil
