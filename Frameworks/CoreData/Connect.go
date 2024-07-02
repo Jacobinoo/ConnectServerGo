@@ -3,10 +3,11 @@ package CoreData
 import (
 	"database/sql"
 	"log"
+	"os"
 )
 
 func Connect() {
-	db, err := sql.Open("mysql", "root:SMJyflsGzCIWuqmGSPtmcHFZxCLxQAsX@tcp(roundhouse.proxy.rlwy.net:11308)/railway")
+	db, err := sql.Open("mysql", os.Getenv("DB_URI"))
 	if err != nil {
 		log.Fatal("Invalid DB config:", err)
 	}
