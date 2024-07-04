@@ -28,6 +28,7 @@ func main() {
 
 	router.HandleFunc("POST /Account/SignIn", Account.SignInHandler)
 	router.HandleFunc("POST /Account/SignUp", Account.SignUpHandler)
+	router.HandleFunc("GET /Account/RefreshSession", Account.RefreshSessionHandler)
 
 	http.ListenAndServe(os.Getenv("NETWORK_ADDR"), router)
 }
