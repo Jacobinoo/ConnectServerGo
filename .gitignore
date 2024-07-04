@@ -3,3 +3,4 @@
 .env.production
 
 /bin/*
+.DS_Store
