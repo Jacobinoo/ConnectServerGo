@@ -1,3 +1,4 @@
+![Connect Server Logo](jacobinoo.github.io/assets/ConnectServerLogo.png)
 # Connect Server for Go (Work In Progress)
 
 Connect Server (Minerva) is a REST backend that implements and exposes set of APIs needed to deliver functional and performant server infrastructure for Connect Messenger clients to communicate with. **Based on routing. Built using Go.**
