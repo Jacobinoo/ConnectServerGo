@@ -1,5 +1,7 @@
 package CoreData
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 var DatabaseInstance *sql.DB
