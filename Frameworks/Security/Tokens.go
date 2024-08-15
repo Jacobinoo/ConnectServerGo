@@ -1,8 +1,10 @@
 package Security
 
 import (
+	"errors"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -25,7 +27,9 @@ func ConstructAccessToken() (string, error) {
 
 func ConstructRefreshToken() (string, error) {
 	return constructJwtToken(os.Getenv("RT_PRIVATE_B64"), &jwt.RegisteredClaims{
-		Issuer: "Connect",
+		Issuer:    "Connect",
+		ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 14)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
 	})
 }
 
@@ -38,4 +42,20 @@ func RetrieveBearerTokenFromAuthHeader(rawAuthorizationHeaderValue string) strin
 	}
 	obtainedToken := strings.TrimSpace(splitHeader[1])
 	return obtainedToken
+}
+
+func ValidateRefreshToken(refreshToken string) error {
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("RT_PRIVATE_B64")), nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !token.Valid {
+		return errors.New("Invalid refresh token")
+	}
+
+	return nil
 }

@@ -80,7 +80,7 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) err
 	return nil
 }
 
-const InternalServerErrorHttpResponseMessage string = "An unknown error occured on our side. We're sorry for the in"
+const InternalServerErrorHttpResponseMessage string = "An unknown error occured on our side. We're sorry for the inconvenience."
 
 // Validation
 
