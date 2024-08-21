@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	// _ "github.com/go-sql-driver/mysql"
+	_ "github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 )
 

@@ -217,7 +217,7 @@ func insertAccountToDb(data *Types.AccountRegisterData) error {
 		return Helpers.ErrUUIDGenerationFailed
 	}
 
-	_, err := CoreData.DatabaseInstance.ExecContext(context.Background(), query, newUUID, passwordHash, data.Email, data.FirstName, data.LastName)
+	_, err := CoreData.DatabaseInstance.Exec(context.Background(), query, newUUID, passwordHash, data.Email, data.FirstName, data.LastName)
 	if err != nil {
 		log.Print(err)
 		return Helpers.ErrInsertionFailed

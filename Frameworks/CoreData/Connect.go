@@ -1,19 +1,21 @@
 package CoreData
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"os"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func Connect() {
-	db, err := sql.Open("mysql", os.Getenv("DB_URI"))
+	db, err := pgx.Connect(context.Background(), os.Getenv("DB_URI"))
 	if err != nil {
 		log.Fatal("Invalid DB config:", err)
 	}
-	if err = db.Ping(); err != nil {
+	if err = db.Ping(context.Background()); err != nil {
 		log.Fatal("DB unreachable:", err)
 	}
-	log.Println("Successfully connected to database and pinged it")
+	defer log.Println("Successfully connected to database and pinged it")
 	DatabaseInstance = db
 }

@@ -1,7 +1,5 @@
 package CoreData
 
-import (
-	"database/sql"
-)
+import "github.com/jackc/pgx/v5"
 
-var DatabaseInstance *sql.DB
+var DatabaseInstance *pgx.Conn

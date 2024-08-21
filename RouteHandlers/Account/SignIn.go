@@ -4,6 +4,7 @@ import (
 	"ConnectServer/Frameworks/CoreData"
 	"ConnectServer/Frameworks/Security"
 	"ConnectServer/Helpers"
+	"context"
 
 	"ConnectServer/Types"
 	"database/sql"
@@ -108,7 +109,7 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPasswordHash string, error error) {
 	var row Types.AccountLoginData
 
-	err := CoreData.DatabaseInstance.QueryRow("SELECT email,password FROM `Accounts` WHERE email=? LIMIT 1", account.Email).Scan(&row.Email, &row.Password)
+	err := CoreData.DatabaseInstance.QueryRow(context.Background(), "SELECT email,password FROM `Accounts` WHERE email=? LIMIT 1", account.Email).Scan(&row.Email, &row.Password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println(Helpers.ErrSignInEmailNotFound)
