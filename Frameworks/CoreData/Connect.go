@@ -10,6 +10,7 @@ import (
 	"github.com/scylladb/gocqlx/v3"
 )
 
+// ConnectUserServices is a CoreData link to the database for user services
 func ConnectUserServices() {
 	dbpool, err := pgxpool.New(context.Background(), os.Getenv("USER_SERVICES_DB_URI"))
 	if err != nil {
@@ -22,6 +23,7 @@ func ConnectUserServices() {
 	UserServicesDatabaseInstance = dbpool
 }
 
+// ConnectStorageServices is a CoreData link to the database for application's main crucial data storage point
 func ConnectStorageServices() {
 	StorageServicesDatabaseCluster = gocql.NewCluster(os.Getenv("STORAGE_SERVICES_DB_URI"))
 	StorageServicesDatabaseCluster.Keyspace = os.Getenv("STORAGE_SERVICES_DB_SHARED_SPACE")
