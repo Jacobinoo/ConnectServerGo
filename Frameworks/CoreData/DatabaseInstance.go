@@ -1,5 +1,12 @@
 package CoreData
 
-import "github.com/jackc/pgx/v5"
+import (
+	"github.com/gocql/gocql"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/scylladb/gocqlx/v3"
+)
 
-var DatabaseInstance *pgx.Conn
+var UserServicesDatabaseInstance *pgxpool.Pool
+
+var StorageServicesDatabaseCluster *gocql.ClusterConfig
+var StorageServicesDatabaseSession *gocqlx.Session

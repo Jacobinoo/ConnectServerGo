@@ -10,6 +10,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 	"unicode/utf8"
 )
 
@@ -209,7 +210,7 @@ func insertAccountToDb(data *Types.AccountRegisterData) error {
 		return Helpers.ErrHasherHashNew
 	}
 
-	query := "INSERT INTO `Accounts` (`id`, `password`, `email`, `firstName`, `lastName`) VALUES (?, ?, ?, ?, ?)"
+	query := "INSERT INTO accounts (account_id, password, email, full_name, created_at) VALUES ($1, $2, $3, ($4, $5, null), $6)"
 
 	newUUID, UUIDErr := Security.GenerateUUID()
 	if UUIDErr != nil {
@@ -217,7 +218,7 @@ func insertAccountToDb(data *Types.AccountRegisterData) error {
 		return Helpers.ErrUUIDGenerationFailed
 	}
 
-	_, err := CoreData.DatabaseInstance.Exec(context.Background(), query, newUUID, passwordHash, data.Email, data.FirstName, data.LastName)
+	_, err := CoreData.UserServicesDatabaseInstance.Exec(context.Background(), query, newUUID, passwordHash, data.Email, data.FirstName, data.LastName, time.Now())
 	if err != nil {
 		log.Print(err)
 		return Helpers.ErrInsertionFailed

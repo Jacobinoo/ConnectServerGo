@@ -12,6 +12,8 @@ import (
 	"errors"
 	"log"
 	"net/http"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func SignInHandler(writer http.ResponseWriter, request *http.Request) {
@@ -109,7 +111,9 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPasswordHash string, error error) {
 	var row Types.AccountLoginData
 
-	err := CoreData.DatabaseInstance.QueryRow(context.Background(), "SELECT email,password FROM `Accounts` WHERE email=? LIMIT 1", account.Email).Scan(&row.Email, &row.Password)
+	CoreData.UserServicesDatabaseInstance.BeginTx(context.Background(), pgx.TxOptions{})
+
+	err := CoreData.UserServicesDatabaseInstance.QueryRow(context.Background(), "SELECT email,password FROM `accounts` WHERE email=? LIMIT 1", account.Email).Scan(&row.Email, &row.Password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println(Helpers.ErrSignInEmailNotFound)

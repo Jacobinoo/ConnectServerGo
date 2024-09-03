@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	// _ "github.com/go-sql-driver/mysql"
-	_ "github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -17,13 +15,13 @@ func main() {
 	if appEnvPath == "" {
 		appEnvPath = ".env"
 	}
-
 	err := godotenv.Load(appEnvPath)
 	if err != nil {
 		log.Fatal("error loading .env file")
 	}
 
-	CoreData.Connect()
+	CoreData.ConnectUserServices()
+	CoreData.ConnectStorageServices()
 
 	router := http.NewServeMux()
 
