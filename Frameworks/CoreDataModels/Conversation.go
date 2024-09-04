@@ -5,8 +5,8 @@ import "github.com/scylladb/gocqlx/v3/table"
 var conversationsByUserMetadata = table.Metadata{
 	Name:    "conversations_by_user",
 	Columns: []string{"conversation_id", "user_id", "members", "name", "type"},
-	PartKey: []string{"conversation_id", "user_id"},
-	SortKey: []string{},
+	PartKey: []string{"user_id"},
+	SortKey: []string{"conversation_id"},
 }
 var conversationsMetadata = table.Metadata{
 	Name:    "conversations",
@@ -22,8 +22,8 @@ var ConversationsTable = table.New(conversationsMetadata)
 
 type ConversationOfUser struct {
 	ConversationId int64
-	UserId         int64
-	Members        []int64
+	UserId         string
+	Members        []string
 	Name           string
 	Type           string
 }
