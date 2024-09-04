@@ -5,6 +5,7 @@ import (
 	"ConnectServer/Frameworks/Security"
 	"ConnectServer/Helpers"
 	"ConnectServer/RouteHandlers/Account"
+	"ConnectServer/RouteHandlers/Conversation"
 	"ConnectServer/Types"
 	"context"
 	"encoding/json"
@@ -34,11 +35,14 @@ func main() {
 	router.HandleFunc("POST /Account/SignUp", Account.SignUpHandler)
 	router.HandleFunc("GET /Account/RefreshSession", Account.RefreshSessionHandler)
 
-	// router.HandleFunc("GET /Conversations", Conversation.FetchManyConversationsHandler)
+	router.HandleFunc("GET /Conversations", AuthGuard(Conversation.FetchManyConversationsHandler))
 
 	http.ListenAndServe(os.Getenv("NETWORK_ADDR"), router)
 }
 
+// AuthGuard is a middleware wrapper that guards the wrapped route handler preventing any unauthorized requests. It validates the access token, derives the identity of the token owner, and finally passes it into the request context. On validation failure it returns, thus preventing the call of the route handler function.
+//
+// Usage: AuthGuard(Account.SignInRouteHandler))
 func AuthGuard(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		encoder := *json.NewEncoder(w)
@@ -56,6 +60,7 @@ func AuthGuard(next http.HandlerFunc) http.HandlerFunc {
 					Success: false,
 				},
 			}, http.StatusUnauthorized)
+			return
 		}
 
 		ctx := context.WithValue(r.Context(), "tokenSubject", subject)
