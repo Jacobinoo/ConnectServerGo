@@ -137,7 +137,7 @@ func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	insertionErr := insertAccountToDb(&accountToRegister)
+	accountId, insertionErr := insertAccountToDb(&accountToRegister)
 	if insertionErr != nil {
 		log.Println(insertionErr)
 		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
@@ -151,7 +151,7 @@ func SignUpHandler(writer http.ResponseWriter, request *http.Request) {
 
 	log.Println("successful register for", accountToRegister.Email)
 
-	at, rt, err := GenerateTokenPair()
+	at, rt, err := GenerateTokenPair(accountId)
 	if err != nil {
 		log.Println("token pair generation failed")
 		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
@@ -203,11 +203,11 @@ func validateRegistrationFormData(registerFormData *Types.AccountRegisterData) e
 	return nil
 }
 
-func insertAccountToDb(data *Types.AccountRegisterData) error {
+func insertAccountToDb(data *Types.AccountRegisterData) (accountId string, error error) {
 	passwordHash, hasherErr := Security.HashPassword(data.Password)
 	if hasherErr != nil {
 		log.Print(hasherErr)
-		return Helpers.ErrHasherHashNew
+		return "", Helpers.ErrHasherHashNew
 	}
 
 	query := "INSERT INTO accounts (account_id, password, email, full_name, created_at) VALUES ($1, $2, $3, ($4, $5, null), $6)"
@@ -215,14 +215,14 @@ func insertAccountToDb(data *Types.AccountRegisterData) error {
 	newUUID, UUIDErr := Security.GenerateUUID()
 	if UUIDErr != nil {
 		log.Print(UUIDErr)
-		return Helpers.ErrUUIDGenerationFailed
+		return "", Helpers.ErrUUIDGenerationFailed
 	}
 
 	_, err := CoreData.UserServicesDatabaseInstance.Exec(context.Background(), query, newUUID, passwordHash, data.Email, data.FirstName, data.LastName, time.Now())
 	if err != nil {
 		log.Print(err)
-		return Helpers.ErrInsertionFailed
+		return "", Helpers.ErrInsertionFailed
 	}
 
-	return nil
+	return newUUID, nil
 }

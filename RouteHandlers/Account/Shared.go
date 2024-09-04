@@ -6,8 +6,8 @@ import (
 	"log"
 )
 
-func GenerateTokenPair() (accessToken, refreshToken string, error error) {
-	at, err := Security.ConstructAccessToken()
+func GenerateTokenPair(userId string) (accessToken, refreshToken string, error error) {
+	at, err := Security.ConstructAccessToken(userId)
 	if err != nil {
 		log.Println(errAccountAccessTokenGenerationFailed)
 		return "", "", errAccountAccessTokenGenerationFailed

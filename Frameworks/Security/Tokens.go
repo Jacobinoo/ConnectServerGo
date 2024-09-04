@@ -12,6 +12,7 @@ import (
 // type UserClaims struct {
 // 	jwt.Claims
 // }
+//
 
 func constructJwtToken(secretKey string, claims *jwt.RegisteredClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -19,9 +20,10 @@ func constructJwtToken(secretKey string, claims *jwt.RegisteredClaims) (string, 
 	return ss, err
 }
 
-func ConstructAccessToken() (string, error) {
+func ConstructAccessToken(userId string) (string, error) {
 	return constructJwtToken(os.Getenv("AT_PRIVATE_B64"), &jwt.RegisteredClaims{
-		Issuer: "Connect",
+		Issuer:  "Connect",
+		Subject: userId,
 	})
 }
 
@@ -58,4 +60,26 @@ func ValidateRefreshToken(refreshToken string) error {
 	}
 
 	return nil
+}
+
+func VerifyAccessTokenAndDeriveOwnerId(accessToken string) (string, error) {
+	_token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("AT_PRIVATE_B64")), nil
+	})
+	if _token == nil {
+		return "", err
+	}
+	claims, _ := _token.Claims.(jwt.MapClaims)
+	return claims.GetSubject()
+}
+
+func VerifyRefreshTokenAndDeriveOwnerId(refreshToken string) (string, error) {
+	_token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("RT_PRIVATE_B64")), nil
+	})
+	if _token == nil {
+		return "", err
+	}
+	claims, _ := _token.Claims.(jwt.MapClaims)
+	return claims.GetSubject()
 }

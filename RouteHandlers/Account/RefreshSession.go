@@ -25,7 +25,7 @@ func RefreshSessionHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	refreshTokenValidationError := Security.ValidateRefreshToken(refreshToken)
+	ownerId, refreshTokenValidationError := Security.VerifyRefreshTokenAndDeriveOwnerId(refreshToken)
 
 	if refreshTokenValidationError != nil {
 		log.Println("Refresh token validation failed:", refreshTokenValidationError)
@@ -38,7 +38,7 @@ func RefreshSessionHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	at, rt, err := GenerateTokenPair()
+	at, rt, err := GenerateTokenPair(ownerId)
 	if err != nil {
 		log.Println("New token pair couldn't be created")
 		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{

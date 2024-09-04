@@ -43,7 +43,7 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	passwordHash, err := fetchPasswordHashMatchingEmail(&account)
+	passwordHash, accountId, err := fetchPasswordHashMatchingEmail(&account)
 	if err != nil {
 		if errors.Is(err, Helpers.ErrSignInEmailNotFound) {
 			Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
@@ -85,7 +85,7 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 
 	log.Println("successful login for", account.Email)
 
-	at, rt, err := GenerateTokenPair()
+	at, rt, err := GenerateTokenPair(accountId)
 	if err != nil {
 		log.Println("token pair generation failed")
 		Helpers.JSONError(encoder, writer, Types.HttpErrorResponse{
@@ -107,17 +107,20 @@ func SignInHandler(writer http.ResponseWriter, request *http.Request) {
 	encoder.Encode(response)
 }
 
-func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPasswordHash string, error error) {
-	var row Types.AccountLoginData
+func fetchPasswordHashMatchingEmail(account *Types.AccountLoginData) (accountPasswordHash string, accountId string, error error) {
+	var row struct {
+		AccountId string `json:"account_id"`
+		Types.AccountLoginData
+	}
 
-	err := CoreData.UserServicesDatabaseInstance.QueryRow(context.Background(), "SELECT email,password FROM accounts WHERE email=$1 LIMIT 1", account.Email).Scan(&row.Email, &row.Password)
+	err := CoreData.UserServicesDatabaseInstance.QueryRow(context.Background(), "SELECT account_id, email,password FROM accounts WHERE email=$1 LIMIT 1", account.Email).Scan(&row.AccountId, &row.Email, &row.Password)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Println(Helpers.ErrSignInEmailNotFound)
-			return "", Helpers.ErrSignInEmailNotFound
+			return "", "", Helpers.ErrSignInEmailNotFound
 		}
 		log.Println(err)
-		return "", err
+		return "", "", err
 	}
-	return row.Password, nil
+	return row.Password, row.AccountId, nil
 }
