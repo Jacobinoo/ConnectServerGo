@@ -29,10 +29,20 @@ func FetchManyConversationsHandler(writer http.ResponseWriter, request *http.Req
 	conversationsMappedToProvidable := []Types.ConversationProvidableData{}
 
 	for _, conversation := range conversations {
+		membersOfConversationMappedToProvidable := []Types.ConversationMemberProvidableData{}
+		for _, conversationMember := range conversation.Members {
+			mappedMember := Types.ConversationMemberProvidableData{
+				AccountId:  conversationMember,
+				FirstName:  "Unknown TODO",
+				LastName:   "Unknown TODO",
+				MiddleName: "Unknown Optional TODO",
+			}
+			membersOfConversationMappedToProvidable = append(membersOfConversationMappedToProvidable, mappedMember)
+		}
 		mappedConversation := Types.ConversationProvidableData{
 			ConversationId: strconv.FormatInt(conversation.ConversationId, 10),
 			//TODO: Members
-			Members: []Types.ConversationMemberProvidableData{},
+			Members: membersOfConversationMappedToProvidable,
 			Name:    conversation.Name,
 			Type:    conversation.Type,
 		}
